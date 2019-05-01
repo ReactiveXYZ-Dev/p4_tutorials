@@ -7,7 +7,7 @@ Vagrant.configure(2) do |config|
   end
   config.vm.provider "virtualbox" do |vb|
     vb.name = "P4 Tutorial" + Time.now.strftime(" %Y-%m-%d")
-    vb.gui = true
+    vb.gui = false
     vb.memory = 2048
     vb.cpus = 2
     vb.customize ["modifyvm", :id, "--cableconnected1", "on"]
@@ -26,4 +26,5 @@ Vagrant.configure(2) do |config|
   config.vm.provision "file", source: "p4.vim",        destination: "/home/vagrant/p4.vim"
   config.vm.provision "shell", path: "root-bootstrap.sh"
   config.vm.provision "shell", privileged: false, path: "user-bootstrap.sh"
+  config.ssh.extra_args = ["-Y"]
 end

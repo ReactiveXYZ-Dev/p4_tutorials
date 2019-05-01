@@ -220,7 +220,7 @@ if __name__ == '__main__':
                         type=str, action="store", required=False,
                         default='./build/advanced_tunnel.json')
     args = parser.parse_args()
-
+    
     if not os.path.exists(args.p4info):
         parser.print_help()
         print "\np4info file not found: %s\nHave you run 'make'?" % args.p4info
