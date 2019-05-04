@@ -125,8 +125,8 @@ def main(p4info_file_path, bmv2_file_path):
         accept_rules = defaultdict(dict)
 
         while True:
-            rule = raw_input("# Please enter a rule: ")
-            rules = rule.split(":")
+            rule = raw_input("# Please enter a command: ")
+            rules = rule.split(" ")
             rule = rules[0]
 
             if rule == 'drop':

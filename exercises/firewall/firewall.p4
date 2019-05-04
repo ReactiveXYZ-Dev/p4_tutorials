@@ -1,6 +1,7 @@
 /* -*- P4_16 -*- */
 #include <core.p4>
 #include <v1model.p4>
+// #include <psa.p4>
 
 const bit<16> TYPE_IPV4 = 0x800;
 
@@ -33,13 +34,19 @@ header ipv4_t {
     ip4Addr_t dstAddr;
 }
 
-struct metadata {
-    /* empty */
-}
-
 struct headers {
     ethernet_t   ethernet;
     ipv4_t       ipv4;
+}
+
+struct pkt_drop_digest_t {
+    ip4Addr_t srcAddr;
+    ip4Addr_t dstAddr;
+    bit<16> ct;
+}
+
+struct metadata {
+    pkt_drop_digest_t pkt_drop_msg;
 }
 
 /*************************************************************************
@@ -88,6 +95,14 @@ control MyIngress(inout headers hdr,
                   inout standard_metadata_t standard_metadata) {
     action drop() {
         mark_to_drop();
+        
+        // modify dropped digest
+        meta.pkt_drop_msg.srcAddr = hdr.ipv4.srcAddr;
+        meta.pkt_drop_msg.dstAddr = hdr.ipv4.dstAddr;
+        meta.pkt_drop_msg.ct = meta.pkt_drop_msg.ct + 1;
+
+        // send
+        digest<pkt_drop_digest_t>(123, meta.pkt_drop_msg);
     }
     
     action ipv4_forward(macAddr_t dstAddr, egressSpec_t port) {
@@ -156,6 +171,7 @@ control MyComputeChecksum(inout headers  hdr, inout metadata meta) {
 *************************************************************************/
 
 control MyDeparser(packet_out packet, in headers hdr) {
+    
     apply {
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);

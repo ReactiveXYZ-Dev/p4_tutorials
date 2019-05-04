@@ -17,7 +17,7 @@ Vagrant.configure(2) do |config|
                 "--type", "dvddrive", 
                 "--medium", "emptydrive"]    
     vb.customize ["modifyvm", :id, "--vram", "32"]
-
+    vb.customize ["modifyvm", :id, "--acpi", "off"]
   end
   config.vm.synced_folder '..', '/home/p4/tutorials'  
   config.vm.hostname = "p4"
