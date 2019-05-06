@@ -55,6 +55,16 @@ class SwitchConnection(object):
         self.requests_stream.close()
         self.stream_msg_resp.cancel()
 
+    def StreamDigestMessages(self, dry_run=False):
+        request = p4runtime_pb2.StreamMessageRequest()
+        request.digest_ack.digest_id = 2566962567 # TODO: this is hardcoded
+        if dry_run:
+            print "P4Runtime Read stream message: ", request
+        else:
+            self.requests_stream.put(request)
+            for item in self.stream_msg_resp:
+                yield item
+
     def MasterArbitrationUpdate(self, dry_run=False, **kwargs):
         request = p4runtime_pb2.StreamMessageRequest()
         request.arbitration.device_id = self.device_id
@@ -67,7 +77,7 @@ class SwitchConnection(object):
             self.requests_stream.put(request)
             for item in self.stream_msg_resp:
                 return item # just one
-
+    
     def SetForwardingPipelineConfig(self, p4info, dry_run=False, **kwargs):
         device_config = self.buildDeviceConfig(**kwargs)
         request = p4runtime_pb2.SetForwardingPipelineConfigRequest()

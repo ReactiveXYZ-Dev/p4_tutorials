@@ -7,6 +7,7 @@ import json
 import pickle
 from time import sleep
 from collections import defaultdict
+import threading
 
 # Import P4Runtime lib from parent utils dir
 # Probably there's a better way of doing this.
@@ -70,6 +71,13 @@ def writeTableEntry(p4info_helper, sw, table_name, dst_eth_addr, dst_eth_port, d
     sw.WriteTableEntry(table_entry)
     return table_entry
 
+def printDigests(p4info_helper, sw):
+    print "Start checking digests for %s" % sw.device_id
+    for msg in sw.StreamDigestMessages():
+        if msg.has_digest():
+            print("Digest: ", msg.digest())
+
+
 def main(p4info_file_path, bmv2_file_path):
     # Instantiate a P4Runtime helper from the p4info file
     p4info_helper = p4runtime_lib.helper.P4InfoHelper(p4info_file_path)
@@ -123,6 +131,11 @@ def main(p4info_file_path, bmv2_file_path):
         TABLE_NAME = "ipv4_lpm"
         # from_sw:{ to_sw: [rules] }
         accept_rules = defaultdict(dict)
+
+        # start print digest in a separate thread
+        for _, sw in switches.items():
+            t = threading.Thread(target=printDigests, args=(p4info_helper, sw))
+            t.start()
 
         while True:
             rule = raw_input("# Please enter a command: ")
@@ -222,7 +235,7 @@ def main(p4info_file_path, bmv2_file_path):
         printGrpcError(e)
     except KeyboardInterrupt:
         print " Shutting down."
-
+    
     ShutdownAllSwitchConnections()
 
 
