@@ -55,13 +55,27 @@ class SwitchConnection(object):
         self.requests_stream.close()
         self.stream_msg_resp.cancel()
 
-    def StreamDigestMessages(self, dry_run=False):
-        request = p4runtime_pb2.StreamMessageRequest()
-        request.digest_ack.digest_id = 2566962567 # TODO: this is hardcoded
+    def StreamDigestMessages(self, digest_id, dry_run=False):
+        #send a digest entry INSERT message to init the streaming process
+        activation_request = p4runtime_pb2.WriteRequest()
+        activation_request.device_id = self.device_id
+        activation_request.election_id.high = 1
+        update = activation_request.updates.add()
+        update.type = p4runtime_pb2.Update.INSERT
+        update.entity.digest_entry.digest_id = digest_id
+        
         if dry_run:
-            print "P4Runtime Read stream message: ", request
+            print "P4Runtime Enable digest %s on switch %s" % (digest_id, self.device_id)
         else:
-            self.requests_stream.put(request)
+            self.client_stub.Write(activation_request)
+
+        # now read the digests
+        stream_request = p4runtime_pb2.StreamMessageRequest()
+        stream_request.digest_ack.digest_id = digest_id
+        if dry_run:
+            print "P4Runtime Read stream digest message: ", stream_request
+        else:
+            self.requests_stream.put(stream_request)
             for item in self.stream_msg_resp:
                 yield item
 
