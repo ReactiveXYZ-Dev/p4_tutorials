@@ -94,7 +94,7 @@ control MyIngress(inout headers hdr,
                   inout metadata meta,
                   inout standard_metadata_t standard_metadata) {
     action drop() {
-        mark_to_drop();
+        mark_to_drop(standard_metadata);
         
         // modify dropped digest
         meta.pkt_drop_msg.srcAddr = hdr.ipv4.srcAddr;
