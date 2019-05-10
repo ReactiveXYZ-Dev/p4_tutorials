@@ -73,9 +73,9 @@ def writeTableEntry(p4info_helper, sw, table_name, dst_eth_addr, dst_eth_port, d
 
 def printDigests(p4info_helper, sw):
     print "Start checking digests for %s" % sw.device_id
-    for msg in sw.StreamDigestMessages(digest_id = 2566962567):
-        if msg.has_digest():
-            print("Digest: ", msg.digest())
+    for msg in sw.StreamDigestMessages(digest_id=385924487): #TODO this is hardcoded
+        print("Digest: ", msg.digest())
+    print "Finished checking digests for %s" % sw.device_id
 
 
 def main(p4info_file_path, bmv2_file_path):

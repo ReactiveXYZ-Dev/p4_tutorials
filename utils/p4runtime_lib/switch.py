@@ -60,7 +60,7 @@ class SwitchConnection(object):
         #send a digest entry INSERT message to init the streaming process
         activation_request = p4runtime_pb2.WriteRequest()
         activation_request.device_id = self.device_id
-        activation_request.election_id.high = 1
+        activation_request.election_id.low = 1
         update = activation_request.updates.add()
         update.type = p4runtime_pb2.Update.INSERT
         update.entity.digest_entry.digest_id = digest_id
