@@ -17,7 +17,8 @@ from abc import abstractmethod
 from datetime import datetime
 
 import grpc
-from p4 import p4runtime_pb2
+from p4.v1 import p4runtime_pb2
+from p4.v1 import p4runtime_pb2_grpc
 from p4.tmp import p4config_pb2
 
 MSG_LOG_MAX_LEN = 1024
@@ -41,7 +42,7 @@ class SwitchConnection(object):
         if proto_dump_file is not None:
             interceptor = GrpcRequestLogger(proto_dump_file)
             self.channel = grpc.intercept_channel(self.channel, interceptor)
-        self.client_stub = p4runtime_pb2.P4RuntimeStub(self.channel)
+        self.client_stub = p4runtime_pb2_grpc.P4RuntimeStub(self.channel)
         self.requests_stream = IterableQueue()
         self.stream_msg_resp = self.client_stub.StreamChannel(iter(self.requests_stream))
         self.proto_dump_file = proto_dump_file

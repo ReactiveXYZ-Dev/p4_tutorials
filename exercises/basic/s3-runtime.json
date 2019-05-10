@@ -1,6 +1,6 @@
 {
   "target": "bmv2",
-  "p4info": "build/basic.p4info",
+  "p4info": "build/basic.p4.p4info.txt",
   "bmv2_json": "build/basic.json",
   "table_entries": [
     {
@@ -16,7 +16,7 @@
       },
       "action_name": "MyIngress.ipv4_forward",
       "action_params": {
-        "dstAddr": "00:00:00:01:01:00",
+        "dstAddr": "00:00:00:01:03:00",
         "port": 2
       }
     },
@@ -27,7 +27,7 @@
       },
       "action_name": "MyIngress.ipv4_forward",
       "action_params": {
-        "dstAddr": "00:00:00:02:02:00",
+        "dstAddr": "00:00:00:02:03:00",
         "port": 3
       }
     },
