@@ -94,15 +94,15 @@ control MyIngress(inout headers hdr,
                   inout metadata meta,
                   inout standard_metadata_t standard_metadata) {
     action drop() {
-        mark_to_drop(standard_metadata);
-        
         // modify dropped digest
         meta.pkt_drop_msg.srcAddr = hdr.ipv4.srcAddr;
         meta.pkt_drop_msg.dstAddr = hdr.ipv4.dstAddr;
         meta.pkt_drop_msg.ct = meta.pkt_drop_msg.ct + 1;
 
         // send
-        digest<pkt_drop_digest_t>(123, meta.pkt_drop_msg);
+        digest<pkt_drop_digest_t>((bit<32>)1024, meta.pkt_drop_msg);
+
+        mark_to_drop(standard_metadata);
     }
     
     action ipv4_forward(macAddr_t dstAddr, egressSpec_t port) {

@@ -71,8 +71,12 @@ def writeTableEntry(p4info_helper, sw, table_name, dst_eth_addr, dst_eth_port, d
     sw.WriteTableEntry(table_entry)
     return table_entry
 
-def printDigests(p4info_helper, sw):
+def printDigests(p4info_helper, sw, idx, lock, ready):
+    lock.acquire()
     print "Start checking digests for %s" % sw.device_id
+    ready[idx] = True
+    lock.release()
+
     for msg in sw.StreamDigestMessages(digest_id=385924487): #TODO this is hardcoded
         print("Digest: ", msg.digest())
     print "Finished checking digests for %s" % sw.device_id
@@ -132,11 +136,24 @@ def main(p4info_file_path, bmv2_file_path):
         # from_sw:{ to_sw: [rules] }
         accept_rules = defaultdict(dict)
 
-        # start print digest in a separate thread
-        for _, sw in switches.items():
-            t = threading.Thread(target=printDigests, args=(p4info_helper, sw))
+        # start print digest in separate threads
+        ready = [ False for _ in switches.items() ]
+        lock = threading.Lock()
+        for idx, (_, sw) in enumerate(switches.items()):
+            t = threading.Thread(target=printDigests, args=(p4info_helper, sw, idx, lock, ready))
             t.start()
 
+        while True:
+            lock.acquire()
+            result = True
+            for state in ready:
+                result = result and state
+            if result:
+                lock.release()
+                break
+            else:
+                lock.release()
+            
         while True:
             rule = raw_input("# Please enter a command: ")
             rules = rule.split(" ")
@@ -243,12 +260,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='P4Runtime Controller')
     parser.add_argument('--p4info', help='p4info proto in text format from p4c',
                         type=str, action="store", required=False,
-                        default='./build/firewall.p4info')
+                        default='./build/firewall.p4.p4info.txt')
     parser.add_argument('--bmv2-json', help='BMv2 JSON file from p4c',
                         type=str, action="store", required=False,
                         default='./build/firewall.json')
     args = parser.parse_args()
-
     if not os.path.exists(args.p4info):
         parser.print_help()
         print "\np4info file not found: %s\nHave you run 'make'?" % args.p4info
@@ -257,5 +273,4 @@ if __name__ == '__main__':
         parser.print_help()
         print "\nBMv2 JSON file not found: %s\nHave you run 'make'?" % args.bmv2_json
         parser.exit(1)
-    
     main(args.p4info, args.bmv2_json)
