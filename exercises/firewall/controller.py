@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 import argparse
 import grpc
+import time
 import os
 import sys
 import json
@@ -19,6 +20,9 @@ from p4runtime_lib.error_utils import printGrpcError
 from p4runtime_lib.switch import ShutdownAllSwitchConnections
 import p4runtime_lib.helper
 
+
+def prettify(s):
+    return ':'.join('%02x' % ord(b) for b in s)
 
 def readTableRules(p4info_helper, sw):
     """
@@ -77,8 +81,25 @@ def printDigests(p4info_helper, sw, idx, lock, ready):
     ready[idx] = True
     lock.release()
 
-    for msg in sw.StreamDigestMessages(digest_id=385924487): #TODO this is hardcoded
-        print("Digest: ", msg.digest())
+    # TODO this is hardcoded
+    DIGEST_ID = 385924487
+
+    digest_entry = p4info_helper.BuildDigestEntry(digest_id=DIGEST_ID)
+    sw.SendDigestEntry(digest_entry)
+    while True:
+        print
+        for msgs in sw.StreamDigestMessages(digest_id=DIGEST_ID):
+            for members in msgs.data:
+                if members.WhichOneof('data') == 'struct':
+                    srcAddr, dstAddr = None, None
+                    if members.struct.members[0].WhichOneof('data') == 'bitstring':
+                        srcAddr = prettify(members.struct.members[0].bitstring)
+                    if members.struct.members[1].WhichOneof('data') == 'bitstring':
+                        dstAddr = prettify(members.struct.members[1].bitstring)
+                    if srcAddr and dstAddr:
+                        print "Packet dropped from %s to %s" % (srcAddr, dstAddr)
+        time.sleep(100)
+    
     print "Finished checking digests for %s" % sw.device_id
 
 

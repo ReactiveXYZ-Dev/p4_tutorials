@@ -3,7 +3,11 @@ PCAP_DIR = pcaps
 LOG_DIR = logs
 
 TOPO = topology.json
+
+ifndef P4C
 P4C = p4c-bm2-ss
+endif
+
 RUN_SCRIPT = ../../utils/run_exercise.py
 
 source := $(wildcard *.p4)

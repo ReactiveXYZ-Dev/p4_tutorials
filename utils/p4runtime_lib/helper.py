@@ -188,3 +188,15 @@ class P4InfoHelper(object):
                     for field_name, value in action_params.iteritems()
                 ])
         return table_entry
+
+    def BuildDigestEntry(self, digest_id):
+        digest_entry = p4runtime_pb2.DigestEntry()
+        # using name
+        digest_entry.digest_id = digest_id
+        # using id directly
+        #digest_entry.digest_id = int(digest_id)
+        # FIXME: set config
+        digest_entry.config.max_timeout_ns = 0
+        digest_entry.config.max_list_size = 1
+        digest_entry.config.ack_timeout_ns = 0
+        return digest_entry

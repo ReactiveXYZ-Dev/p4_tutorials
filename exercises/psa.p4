@@ -74,8 +74,8 @@ typedef bit<64> TimestampUint_t;
  * https://github.com/p4lang/behavioral-model/blob/master/targets/simple_switch/simple_switch.cpp
  */
 
-@p4runtime_translation("p4.org/psa/v1/PortId_t", 32)
-type PortIdUint_t         PortId_t;
+// @p4runtime_translation("p4.org/psa/v1/PortIdUint_t", 32)
+// type PortIdUint_t         PortIdUint_t;
 @p4runtime_translation("p4.org/psa/v1/MulticastGroup_t", 32)
 type MulticastGroupUint_t MulticastGroup_t;
 @p4runtime_translation("p4.org/psa/v1/CloneSessionId_t", 16)
@@ -90,8 +90,8 @@ type EgressInstanceUint_t EgressInstance_t;
 type TimestampUint_t      Timestamp_t;
 typedef error   ParserError_t;
 
-const PortId_t PSA_PORT_RECIRCULATE = (PortId_t) 0xfffffffa;
-const PortId_t PSA_PORT_CPU = (PortId_t) 0xfffffffd;
+const PortIdUint_t PSA_PORT_RECIRCULATE = (PortIdUint_t) 0xfffffffa;
+const PortIdUint_t PSA_PORT_CPU = (PortIdUint_t) 0xfffffffd;
 
 const CloneSessionId_t PSA_CLONE_SESSION_TO_CPU = (CloneSessionId_t) 0;
 
@@ -122,8 +122,8 @@ typedef bit<unspecified> PacketLengthUint_t;
 typedef bit<unspecified> EgressInstanceUint_t;
 typedef bit<unspecified> TimestampUint_t;
 
-@p4runtime_translation("p4.org/psa/v1/PortId_t", 32)
-type PortIdUint_t         PortId_t;
+@p4runtime_translation("p4.org/psa/v1/PortIdUint_t", 32)
+type PortIdUint_t         PortIdUint_t;
 @p4runtime_translation("p4.org/psa/v1/MulticastGroup_t", 32)
 type MulticastGroupUint_t MulticastGroup_t;
 @p4runtime_translation("p4.org/psa/v1/CloneSessionId_t", 16)
@@ -138,8 +138,8 @@ type EgressInstanceUint_t EgressInstance_t;
 type TimestampUint_t      Timestamp_t;
 typedef error   ParserError_t;
 
-const PortId_t PSA_PORT_RECIRCULATE = (PortId_t) unspecified;
-const PortId_t PSA_PORT_CPU = (PortId_t) unspecified;
+const PortIdUint_t PSA_PORT_RECIRCULATE = (PortIdUint_t) unspecified;
+const PortIdUint_t PSA_PORT_CPU = (PortIdUint_t) unspecified;
 
 const CloneSessionId_t PSA_CLONE_SESSION_TO_CPU = (CloneSessiontId_t) unspecified;
 // END:Type_defns
@@ -216,8 +216,8 @@ type  TimestampInHeaderUint_t      TimestampInHeader_t;
  * from a 'bit<W2>' value to the final 'type', with the same width
  * W2. */
 
-PortId_t psa_PortId_header_to_int (in PortIdInHeader_t x) {
-    return (PortId_t) (PortIdUint_t) (PortIdInHeaderUint_t) x;
+PortIdUint_t psa_PortId_header_to_int (in PortIdInHeader_t x) {
+    return (PortIdUint_t) (PortIdUint_t) (PortIdInHeaderUint_t) x;
 }
 MulticastGroup_t psa_MulticastGroup_header_to_int (in MulticastGroupInHeader_t x) {
     return (MulticastGroup_t) (MulticastGroupUint_t) (MulticastGroupInHeaderUint_t) x;
@@ -238,7 +238,7 @@ Timestamp_t psa_Timestamp_header_to_int (in TimestampInHeader_t x) {
     return (Timestamp_t) (TimestampUint_t) (TimestampInHeaderUint_t) x;
 }
 
-PortIdInHeader_t psa_PortId_int_to_header (in PortId_t x) {
+PortIdInHeader_t psa_PortId_int_to_header (in PortIdUint_t x) {
     return (PortIdInHeader_t) (PortIdInHeaderUint_t) (PortIdUint_t) x;
 }
 MulticastGroupInHeader_t psa_MulticastGroup_int_to_header (in MulticastGroup_t x) {
@@ -280,19 +280,19 @@ enum PSA_PacketPath_t {
 }
 
 struct psa_ingress_parser_input_metadata_t {
-  PortId_t                 ingress_port;
+  PortIdUint_t                 ingress_port;
   PSA_PacketPath_t         packet_path;
 }
 
 struct psa_egress_parser_input_metadata_t {
-  PortId_t                 egress_port;
+  PortIdUint_t                 egress_port;
   PSA_PacketPath_t         packet_path;
 }
 
 struct psa_ingress_input_metadata_t {
   // All of these values are initialized by the architecture before
   // the Ingress control block begins executing.
-  PortId_t                 ingress_port;
+  PortIdUint_t                 ingress_port;
   PSA_PacketPath_t         packet_path;
   Timestamp_t              ingress_timestamp;
   ParserError_t            parser_error;
@@ -307,12 +307,12 @@ struct psa_ingress_output_metadata_t {
   bool                     drop;             // true
   bool                     resubmit;         // false
   MulticastGroup_t         multicast_group;  // 0
-  PortId_t                 egress_port;      // initial value is undefined
+  PortIdUint_t                 egress_port;      // initial value is undefined
 }
 // END:Metadata_ingress_output
 struct psa_egress_input_metadata_t {
   ClassOfService_t         class_of_service;
-  PortId_t                 egress_port;
+  PortIdUint_t                 egress_port;
   PSA_PacketPath_t         packet_path;
   EgressInstance_t         instance;       /// instance comes from the PacketReplicationEngine
   Timestamp_t              egress_timestamp;
@@ -323,7 +323,7 @@ struct psa_egress_input_metadata_t {
 /// includes enough data for the egress deparser to distinguish
 /// whether the packet should be recirculated or not.
 struct psa_egress_deparser_input_metadata_t {
-  PortId_t                 egress_port;
+  PortIdUint_t                 egress_port;
 }
 // BEGIN:Metadata_egress_output
 struct psa_egress_output_metadata_t {
@@ -404,7 +404,7 @@ match_kind {
 /// will occur.
 
 action send_to_port(inout psa_ingress_output_metadata_t meta,
-                    in PortId_t egress_port)
+                    in PortIdUint_t egress_port)
 {
     meta.drop = false;
     meta.multicast_group = (MulticastGroup_t) 0;

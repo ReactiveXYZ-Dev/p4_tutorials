@@ -43,9 +43,13 @@ class SwitchConnection(object):
             interceptor = GrpcRequestLogger(proto_dump_file)
             self.channel = grpc.intercept_channel(self.channel, interceptor)
         self.client_stub = p4runtime_pb2_grpc.P4RuntimeStub(self.channel)
+
         self.requests_stream = IterableQueue()
         self.stream_msg_resp = self.client_stub.StreamChannel(iter(self.requests_stream))
         self.proto_dump_file = proto_dump_file
+        if proto_dump_file is not None:
+            interceptor = GrpcRequestLogger(proto_dump_file)
+            grpc.intercept_channel(self.stream_msg_resp, interceptor)
         connections.append(self)
 
     @abstractmethod
@@ -56,29 +60,33 @@ class SwitchConnection(object):
         self.requests_stream.close()
         self.stream_msg_resp.cancel()
 
-    def StreamDigestMessages(self, digest_id, dry_run=False):
-        #send a digest entry INSERT message to init the streaming process
-        activation_request = p4runtime_pb2.WriteRequest()
-        activation_request.device_id = self.device_id
-        activation_request.election_id.low = 1
-        update = activation_request.updates.add()
+    def SendDigestEntry(self, digest_entry, dry_run=False):
+        # send a digest entry INSERT message to init the streaming process
+        request = p4runtime_pb2.WriteRequest()
+        request.device_id = self.device_id
+        request.election_id.low = 1
+        update = request.updates.add()
         update.type = p4runtime_pb2.Update.INSERT
-        update.entity.digest_entry.digest_id = digest_id
-        
-        if dry_run:
-            print "P4Runtime Enable digest %s on switch %s" % (digest_id, self.device_id)
-        else:
-            self.client_stub.Write(activation_request)
+        update.entity.digest_entry.CopyFrom(digest_entry)
 
+        if dry_run:
+            print "P4Runtime Enable digest %s on switch %s" % (
+                digest_entry.digest_id, self.device_id)
+        else:
+            self.client_stub.Write(request)
+
+    def StreamDigestMessages(self, digest_id, dry_run=False):
         # now read the digests
         stream_request = p4runtime_pb2.StreamMessageRequest()
-        stream_request.digest_ack.digest_id = digest_id
+        # stream_request.digest_ack.digest_id = digest_id
         if dry_run:
             print "P4Runtime Read stream digest message: ", stream_request
         else:
             self.requests_stream.put(stream_request)
             for item in self.stream_msg_resp:
-                yield item
+                if item.WhichOneof('update') == 'digest':
+                    yield item.digest
+    
 
     def MasterArbitrationUpdate(self, dry_run=False, **kwargs):
         request = p4runtime_pb2.StreamMessageRequest()
