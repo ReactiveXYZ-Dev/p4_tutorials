@@ -21,8 +21,8 @@ from p4runtime_lib.switch import ShutdownAllSwitchConnections
 import p4runtime_lib.helper
 
 
-def prettify(s):
-    return ':'.join('%02x' % ord(b) for b in s)
+def prettify_ip(s):
+    return ':'.join([str(ord(b)) for b in s])
 
 def readTableRules(p4info_helper, sw):
     """
@@ -93,9 +93,9 @@ def printDigests(p4info_helper, sw, idx, lock, ready):
                 if members.WhichOneof('data') == 'struct':
                     srcAddr, dstAddr = None, None
                     if members.struct.members[0].WhichOneof('data') == 'bitstring':
-                        srcAddr = prettify(members.struct.members[0].bitstring)
+                        srcAddr = prettify_ip(members.struct.members[0].bitstring)
                     if members.struct.members[1].WhichOneof('data') == 'bitstring':
-                        dstAddr = prettify(members.struct.members[1].bitstring)
+                        dstAddr = prettify_ip(members.struct.members[1].bitstring)
                     if srcAddr and dstAddr:
                         print "Packet dropped from %s to %s" % (srcAddr, dstAddr)
         time.sleep(100)
